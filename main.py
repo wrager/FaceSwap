@@ -2,6 +2,7 @@
 import os
 import cv2
 import argparse
+import numpy
 
 from face_detection import select_face
 from face_swap import face_swap
@@ -20,6 +21,7 @@ if __name__ == '__main__':
     # Read images
     src_img = cv2.imread(args.src)
     dst_img = cv2.imread(args.dst)
+    dst_alpha = cv2.imread(args.dst, cv2.IMREAD_UNCHANGED)[:,:,3]
 
     # Select src face
     src_points, src_shape, src_face = select_face(src_img)
@@ -30,7 +32,8 @@ if __name__ == '__main__':
         print('Detect 0 Face !!!')
         exit(-1)
 
-    output = face_swap(src_face, dst_face, src_points, dst_points, dst_shape, dst_img, args)
+    output_bgr = face_swap(src_face, dst_face, src_points, dst_points, dst_shape, dst_img, args)[:,:,:3]
+    output = numpy.dstack([output_bgr, dst_alpha])
 
     dir_path = os.path.dirname(args.out)
     if not os.path.isdir(dir_path):
