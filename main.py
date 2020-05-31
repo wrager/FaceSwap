@@ -21,7 +21,11 @@ if __name__ == '__main__':
     # Read images
     src_img = cv2.imread(args.src)
     dst_img = cv2.imread(args.dst)
-    dst_alpha = cv2.imread(args.dst, cv2.IMREAD_UNCHANGED)[:,:,3]
+
+    try:
+        dst_alpha = cv2.imread(args.dst, cv2.IMREAD_UNCHANGED)[:,:,3]
+    except Exception:
+        dst_alpha = None
 
     # Select src face
     src_points, src_shape, src_face = select_face(src_img)
@@ -32,8 +36,12 @@ if __name__ == '__main__':
         print('Detect 0 Face !!!')
         exit(-1)
 
-    output_bgr = face_swap(src_face, dst_face, src_points, dst_points, dst_shape, dst_img, args)[:,:,:3]
-    output = numpy.dstack([output_bgr, dst_alpha])
+    swap_result = face_swap(src_face, dst_face, src_points, dst_points, dst_shape, dst_img, args)
+    if dst_alpha is None:
+        output = swap_result
+    else:
+        output_bgr = swap_result[:,:,:3]
+        output = numpy.dstack([output_bgr, dst_alpha])
 
     dir_path = os.path.dirname(args.out)
     if not os.path.isdir(dir_path):
